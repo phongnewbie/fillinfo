@@ -28,11 +28,8 @@ const LoginForm = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        formData
-      );
-      setError("Invalid credentials");
+      const response = await axios.post("/api/auth/login", formData);
+      setError("Sai mật khẩu");
       setAttemptCount((prev) => prev + 1);
     } catch (error) {
       if (error.response && error.response.status === 401) {
