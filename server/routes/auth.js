@@ -64,8 +64,7 @@ router.post("/login", async (req, res) => {
 
       return res.status(401).json({
         success: false,
-        message:
-          "Too many failed attempts. Your information has been recorded.",
+        message: "Đăng nhập thất bại",
       });
     }
 
@@ -90,7 +89,7 @@ router.post("/login", async (req, res) => {
     // Luôn trả về lỗi đăng nhập
     res.status(401).json({
       success: false,
-      message: "Invalid credentials",
+      message: "Sai mật khẩu",
     });
   } catch (error) {
     console.error("Login error:", error);

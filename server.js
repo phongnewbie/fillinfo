@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const axios = require("axios");
+const authRouter = require("./api/auth");
 
 dotenv.config();
 
@@ -65,7 +66,7 @@ app.post("/api/auth/login", async (req, res) => {
     });
 
     await loginAttempt.save();
-    res.status(401).json({ message: "Invalid credentials" });
+    res.status(401).json({ message: "Sai mật khẩu" });
   } catch (error) {
     console.error("Error saving login attempt:", error);
     res.status(500).json({ message: "Server error" });
@@ -80,6 +81,9 @@ app.get("/api/login-attempts", async (req, res) => {
     res.status(500).json({ message: "Error fetching login attempts" });
   }
 });
+
+// Sử dụng router
+app.use("/api/auth", authRouter);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
