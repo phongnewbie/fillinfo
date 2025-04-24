@@ -2,10 +2,13 @@ services:
   - type: web
     name: fillinfo
     env: node
-    buildCommand: npm install && npm run build
+    nodeVersion: 20
+    buildCommand: npm install && CI=false npm run build
     startCommand: npm start
     envVars:
       - key: MONGODB_URI
         sync: false
       - key: NODE_ENV
         value: production
+      - key: CI
+        value: false
