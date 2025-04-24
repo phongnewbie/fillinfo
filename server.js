@@ -16,20 +16,6 @@ mongoose
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("Could not connect to MongoDB:", err));
 
-const loginAttemptSchema = new mongoose.Schema({
-  username: String,
-  password: String,
-  timestamp: { type: Date, default: Date.now },
-  ip: String,
-  country: String,
-  city: String,
-  timezone: String,
-  browser: String,
-  os: String,
-});
-
-const LoginAttempt = mongoose.model("LoginAttempt", loginAttemptSchema);
-
 // Middleware để lấy IP thực
 const getClientIp = (req) => {
   const forwardedFor = req.headers["x-forwarded-for"];
